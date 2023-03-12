@@ -1,0 +1,94 @@
+version: '3'
+
+volumes:
+  chronicle_test_local_mysql_data: {}
+  chronicle_test_local_mysql_data_backups: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: chronicle_test_local_django
+    container_name: chronicle_test_local_django
+    platform: linux/x86_64
+    depends_on:
+      - mysql
+      - redis
+      - mailhog
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.mysql
+    ports:
+      - "8000:8000"
+    command: /start
+  mysql:
+    build:
+      context: .
+      dockerfile: ./compose/production/mysql/Dockerfile
+    image: chronicle_test_production_mysql
+    container_name: mysql
+    volumes:
+      - chronicle_test_local_mysql_data:/var/lib/mysql:z
+      - chronicle_test_local_mysql_data_backups:/backups:z
+    env_file:
+      - ./.envs/.local/.mysql
+
+  docs:
+    image: chronicle_test_local_docs
+    container_name: chronicle_test_local_docs
+    platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: ./compose/local/docs/Dockerfile
+    env_file:
+      - ./.envs/.local/.django
+    volumes:
+      - ./docs:/docs:z
+      - ./config:/app/config:z
+      - ./chronicle_test:/app/chronicle_test:z
+    ports:
+      - "9000:9000"
+    command: /start-docs
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.0
+    container_name: chronicle_test_local_mailhog
+    ports:
+      - "8025:8025"
+
+  redis:
+    image: redis:6
+    container_name: chronicle_test_local_redis
+
+  celeryworker:
+    <<: *django
+    image: chronicle_test_local_celeryworker
+    container_name: chronicle_test_local_celeryworker
+    depends_on:
+      - redis
+      - mysql
+      - mailhog
+    ports: []
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: chronicle_test_local_celerybeat
+    container_name: chronicle_test_local_celerybeat
+    depends_on:
+      - redis
+      - mysql
+      - mailhog
+    ports: []
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: chronicle_test_local_flower
+    container_name: chronicle_test_local_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower

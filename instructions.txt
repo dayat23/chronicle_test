@@ -1,0 +1,14 @@
+HOW TO USE:
+
+1. docker-compose -f local.yml build (need times)
+2. create superuser -> docker-compose -f local.yml run django python manage.py createsuperuser
+3. docker-compose -f local.yml up (for running application)
+4. docker-compose -f local.yml down (for stopping application)
+
+API DOCS:
+
+http://127.0.0.1:8000/api/docs/
+
+NOTE:
+1. run point number one every add new packages or first time running application, dont forget to run point 4 before do point number 1
+2. every new registrations users send confirmation email, open http://localhost:8025 for confirming email. so, no worries use random email.
