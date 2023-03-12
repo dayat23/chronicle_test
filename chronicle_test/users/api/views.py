@@ -4,7 +4,7 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.mixins import ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserUpdateSerializer
 
 User = get_user_model()
 
@@ -16,6 +16,11 @@ class UserViewSet(ListModelMixin, GenericViewSet):
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserDetailsSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "PUT" or self.request.method == "PATCH":
+            return UserUpdateSerializer
+        return UserDetailsSerializer
 
     def get_object(self):
         return self.request.user
