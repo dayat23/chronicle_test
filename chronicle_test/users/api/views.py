@@ -11,11 +11,7 @@ User = get_user_model()
 
 class UserViewSet(ListModelMixin, GenericViewSet):
     serializer_class = UserSerializer
-    queryset = User.objects.all()
-
-    def get_queryset(self, *args, **kwargs):
-        assert isinstance(self.request.user.id, int)
-        return self.queryset.filter(id=self.request.user.id)
+    queryset = User.objects.filter(is_staff=False)
 
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
